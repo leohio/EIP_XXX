@@ -1,3 +1,4 @@
+---
 eip: ???
 title: Validation Request Message
 description: Message from EVM to Beacon chain, which unlocks Smart Contract Based Witness Encryption.
