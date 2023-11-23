@@ -41,37 +41,28 @@ operation: emitting keccak256(UNIQUE_ID, stack_input) and letting it get signed 
 additional function on the validator-side [4][5]:
 https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/validator.md
 
-
-
-
+```
 def sign_inside_message(inside_message_hash: 32bytes) -> BLS_signature:
      return bls.Sign(privkey,inside_message_hash)
-
+```
 
 
 override in validator-side codes: 
 
 https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#signedbeaconblock
 
-ETH1Data_message(inside_message_hash: 32bytes) -> BLS_signature:
-     return bls.Sign(privkey,inside_message_hash)
-def s
-
-
-
-
-
+```
 class SignedBeaconBlock(Container): 
     message: BeaconBlock 
     signature: BLSSignature 
     # Need to add this array of BLSsignature for each inside massage. 
     signatures: array[BLSSignature]
 
+```
 
-def sign_inside_message(inside_message_hash: 32bytes) -> BLS_signature:
-     return bs.Sign(privkey,inside_message_ha
 https://github.com/ethereum/annotated-spec/blob/master/phase0/beacon-chain.md#state-transition
 
+```
 def verify_block_signature(state: BeaconState, signed_block: SignedBeaconBlock) -> bool:
     proposer = state.validators[signed_block.message.proposer_index] 
     signing_root = compute_signing_root(signed_block.message, get_domain(state, DOMAIN_BEACON_PROPOSER)) 
@@ -79,20 +70,18 @@ def verify_block_signature(state: BeaconState, signed_block: SignedBeaconBlock) 
     message_array = signed_block.message.inside_message_hash_array + [signing_root] 
     # Need to replace bls.Verify by bls.AggregateVerify 
     return bls.AggregateVerify(proposer.pubkey, message_array, signed_block.signatures)
-
-
-
-
+```
 
 
 Note: Unlike signatures for block headers, SignedBeaconBlock.signatures do not need to be permanently stored in the Beacon chain block. It would be better to store them in 4844’s blob.
-Security:
+
+# Security
 Regarding the safety of validator stakes, even if the inside message digest contains potentially dangerous information, it is hashed with a fixed, random unique ID, so the probability of the inside message hash leading to a Layer 1 double vote signature is virtually zero. Furthermore, unless intentionally involving this unique ID in a non-Ethereum chain, it remains safe even outside of Ethereum.
 The security related to the decryption of 3C depends on the security of the smart contract itself, similar to traditional decentralized applications. If the smart contract functions correctly, the resulting messages are decrypted by BLS signatures of Beacon chain Validators, who have verified the validity of these messages. Conversely, if a bug in the 3C contract code inadvertently causes a message to be output under unintended conditions, it may be decrypted under incorrect conditions.
 Drawback:
 There is an increased burden on the Consensus Layer. The frequency of these message signatures will correspond to the number of times this new opcode is called in a block. However, as the signatories for the BLS verification are strictly the same, it is possible to use BLS aggregate verification to validate multiple message signatures, including block headers, in one go. Therefore, in total, only n Merkle proofs and n BLS signatures are added, with no additional pairing required.
 
-SWE’s Benchmark:
+# SWE’s Benchmark
 The benchmark for Threshold SWE, which will be used for encryption/decryption off the Blockchain, currently assumes a 2/3 threshold. With N=2000, encryption takes about 60 seconds, and decryption takes about 350 seconds. For N=500, encryption takes approximately 10 seconds and decryption around 20 seconds. [1] This will depend on how many of Ethereum's validators are randomly sampled for each use case to keep the figures realistic, and whether the technological advancement of SWE progresses as rapidly as ZKP. The reason random sampling is feasible is that, in most cases, information about the ciphertext or its threshold conditions is off-chain and not disclosed to the validators.
 
 # Reference:
