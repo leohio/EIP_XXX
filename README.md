@@ -2,7 +2,7 @@
 eip: ???
 title: Validation Request Message
 description: Message from EVM to Beacon chain, which unlocks Smart Contract Based Witness Encryption.
-author: Leona Hioki(@leohio), Sora Suegami(@Sorasue), Observed by Aayush G(@divide-by-0)
+author: Leona Hioki(@leohio), Sora Suegami(SoraSuegami), Observed by Aayush G(@divide-by-0)
 discussions-to: 
 status: Not revealed
 type: Standards Track
